@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#212121">
+<title>VIPOVI</title>
+<style>
+  :root { --gold:#F2B705; --bg:#212121; --card:#2e2e2e; --ok:#2ecc71; --bad:#e74c3c; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; min-height:100%; background:var(--bg); color:#fff; font-family:Arial, Helvetica, sans-serif; }
+  body { display:flex; flex-direction:column; min-height:100vh; min-height:100dvh; user-select:none; -webkit-user-select:none; touch-action:manipulation; }
+  header { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:#161616; border-bottom:3px solid var(--gold); }
+  #brand { font-size:20px; font-weight:bold; color:var(--gold); }
+  #who { font-size:18px; color:#ddd; text-align:right; }
+  main { flex:1; display:flex; flex-direction:column; padding:12px; gap:12px; }
+  .center { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:10px; padding:16px; }
+  .emoji { font-size:84px; line-height:1.05; }
+  .big { font-size:34px; font-weight:900; line-height:1.15; }
+  .med { font-size:22px; line-height:1.3; }
+  .small { font-size:16px; color:#bbb; }
+  .gold { color:var(--gold); }
+  .bar { display:flex; justify-content:space-between; align-items:center; font-size:18px; color:#ccc; }
+  .bar b { color:var(--gold); font-size:24px; }
+  .names { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .nb { background:var(--card); color:#fff; border:2px solid #444; border-radius:14px; padding:18px 8px; font-size:21px; font-weight:bold; font-family:inherit; }
+  .nb:active { transform:scale(.97); }
+  .nb.taken { opacity:.35; }
+  .btn { border:0; border-radius:16px; padding:20px; font-size:24px; font-weight:900; font-family:inherit; background:var(--gold); color:#212121; width:100%; }
+  .btn.sec { background:transparent; color:#ccc; border:2px solid #555; font-weight:bold; font-size:19px; padding:14px; }
+  .btn:disabled { opacity:.35; }
+  .pad { display:grid; grid-template-columns:repeat(5, 1fr); gap:8px; }
+  .k { aspect-ratio:1/1; border:0; border-radius:12px; background:var(--card); color:#fff; font-size:28px; font-weight:900; font-family:inherit; border:3px solid #3c3c3c; }
+  .k.sel { background:var(--gold); color:#212121; border-color:#fff; }
+  .k:disabled { opacity:.25; }
+  .clue { background:#2b2614; border:3px solid var(--gold); border-radius:18px; padding:20px 18px; font-size:27px; line-height:1.35; font-weight:bold; min-height:150px; display:flex; align-items:center; }
+  .pips { display:flex; gap:8px; justify-content:center; }
+  .pip { width:18px; height:18px; border-radius:50%; border:3px solid var(--gold); } .pip.on { background:var(--gold); }
+  .hidden { display:none !important; }
+  .up { background:#2b2614; border:3px solid var(--gold); border-radius:18px; padding:18px; }
+  .up .big { color:var(--gold); font-size:40px; }
+  /* v6: the round's 15 options as full-width rows; ✕ / swipe crosses one off (a personal note, nothing is sent) */
+  .hint { font-size:16px; line-height:1.35; color:#ddd; text-align:center; }
+  .hint b { color:var(--gold); }
+  .ol { display:flex; flex-direction:column; gap:6px; }
+  .or { display:flex; align-items:stretch; background:var(--card); border:2px solid #444; border-radius:12px; min-height:52px; touch-action:pan-y; position:relative; transition:opacity .15s; }
+  .or.drag { transition:none; }
+  .om { flex:1; min-width:0; display:flex; align-items:center; gap:10px; background:transparent; border:0; color:#fff; font-family:inherit; text-align:left; padding:6px 4px 6px 8px; cursor:pointer; }
+  .om b { flex:0 0 auto; width:40px; height:36px; border-radius:8px; background:var(--gold); color:#212121; font-size:22px; font-weight:900; display:flex; align-items:center; justify-content:center; }
+  .om span { font-size:18px; font-weight:bold; line-height:1.2; overflow-wrap:anywhere; }
+  .ox { flex:0 0 auto; width:52px; background:transparent; border:0; border-left:2px solid #444; color:#bbb; font-size:24px; font-weight:bold; font-family:inherit; cursor:pointer; }
+  .or.sel { border-color:var(--gold); background:#3a3214; box-shadow:0 0 0 2px var(--gold) inset; }
+  .or.x { opacity:.42; border-style:dashed; }
+  .or.x .om b { background:#666; }
+  .or.x .om span { text-decoration:line-through; color:#aaa; }
+  .or.x .ox { color:var(--gold); }
+  .xsep { font-size:14px; color:#888; text-align:center; margin:4px 0 0; }
+  .lockbar { position:sticky; bottom:0; padding:8px 0 calc(6px + env(safe-area-inset-bottom)); background:linear-gradient(rgba(33,33,33,0), var(--bg) 30%); }
+  .lockbar .btn { padding:14px 12px; font-size:22px; line-height:1.15; }
+  .lockbar .btn small { display:block; font-size:16px; font-weight:bold; }
+  #net { position:fixed; right:8px; bottom:6px; font-size:12px; color:#666; }
+  #net.bad { color:#f39c12; font-size:15px; }
+</style>
+</head>
+<body>
+<header><div id="brand">VIPOVI</div><div id="who"></div></header>
+<main id="main"><div class="center"><div class="emoji">⏳</div></div></main>
+<div id="net"></div>
+<script>
+/* VIPOVI (Values Game) phone page (static, GitHub Pages). Talks to the Apps Script web app's JSON API with GET + no cookies.
+ * One QR for everyone: <page> finds today's game; <page>?g=GAME_ID for a specific (practice) game.
+ * Phones only ever show reference NUMBERS – the names are on the TVs. The reader's phone shows clue text, never the value. */
+var API = (window.VG_CFG && window.VG_CFG.api) || 'https://script.google.com/macros/s/AKfycbxTZJKqKtWiqezE437IJrDiwGpIoJvq3kH6nv34601igwHQKjFcXd1UOGBRIZsGAW9RIw/exec';
+var qp = {}; (location.search + '&' + location.hash).replace(/^[?#]/, '').split(/[&#?]/).forEach(function (kv) { var i = kv.indexOf('='); if (i > 0) qp[decodeURIComponent(kv.slice(0, i))] = decodeURIComponent(kv.slice(i + 1)); });
+var GAME = qp.g || '', TOKEN = '', ME = '', S = null, rev = -1, timer = 0, inflight = false, failures = 0, pick = 0, pending = '', confirmName = '', sending = false, lastNextAt = 0;
+var DEV = (function () { try { var d = localStorage.getItem('vg_dev'); if (!d) { d = Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('vg_dev', d); } return d; } catch (e) { return 'nodev' + Math.random().toString(36).slice(2); } })();
+var $ = function (id) { return document.getElementById(id); };
+var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+function saved() { try { return JSON.parse(localStorage.getItem('vg_tok_' + GAME) || 'null'); } catch (e) { return null; } }
+function save(o) { try { if (o) localStorage.setItem('vg_tok_' + GAME, JSON.stringify(o)); else localStorage.removeItem('vg_tok_' + GAME); } catch (e) { } }
+
+function call(params, timeoutMs) {
+  var qs = Object.keys(params).map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); });
+  qs.push('_=' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5));
+  return new Promise(function (resolve, reject) {
+    var ctl = window.AbortController ? new AbortController() : null, done = false;
+    var t = setTimeout(function () { if (done) return; done = true; try { ctl && ctl.abort(); } catch (e) { } reject(new Error('timeout')); }, timeoutMs || 8000);
+    // Google's /exec front end rejects a query parameter named "c" (HTTP 400 "Page Not Found"), so calls that carry the
+    // picked number go as a POST with a text/plain JSON body (a CORS "simple" request: no preflight, no cookies).
+    var post = ('c' in params);
+    fetch(post ? API : API + '?' + qs.join('&'), post
+        ? { method: 'POST', body: JSON.stringify(params), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, credentials: 'omit', cache: 'no-store', redirect: 'follow', referrerPolicy: 'no-referrer', signal: ctl ? ctl.signal : undefined }
+        : { method: 'GET', credentials: 'omit', cache: 'no-store', redirect: 'follow', referrerPolicy: 'no-referrer', signal: ctl ? ctl.signal : undefined })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (j) { if (!done) { done = true; clearTimeout(t); resolve(j); } })
+      .catch(function (e) { if (!done) { done = true; clearTimeout(t); reject(e); } });
+  });
+}
+function net(ok) { var n = $('net'); if (ok) { failures = 0; n.className = ''; n.textContent = ''; } else { failures++; if (failures >= 2) { n.className = 'bad'; n.textContent = 'reconnecting…'; } } }
+function later(ms) { clearTimeout(timer); timer = setTimeout(tick, ms); }
+function delay() {
+  if (document.hidden) return 4000;
+  if (!S) return 2500;
+  if (S.status === 'round') return S.role === 'reader' ? 1500 : 2000;
+  if (S.status === 'readerVote' || S.status === 'tally' || S.status === 'reveal') return 1800;
+  if (S.status === 'final') return 8000;
+  return 2500;
+}
+
+/* ---------- main loop ---------- */
+function tick() {
+  if (API.indexOf('__VG_') === 0) { render('nogame'); return; }   // published before the web app URL was known
+  if (inflight) return later(500);
+  inflight = true;
+  var done = function () { inflight = false; };
+  if (!TOKEN) {
+    call({ api: 'roster', g: GAME }).then(function (r) {
+      done(); net(true);
+      if (!r.ok || !r.game) { S = null; render('nogame'); return later(6000); }
+      GAME = r.game;
+      var sv = saved();
+      if (sv && sv.token) { TOKEN = sv.token; ME = sv.name; return later(10); }
+      if (r.status !== 'lobby') { render('late'); return later(8000); }
+      ROSTER = r; render('pick'); later(2500);
+    }).catch(function () { done(); net(false); later(2500); });
+    return;
+  }
+  call({ api: 'state', g: GAME, p: TOKEN }).then(function (st) {
+    done(); net(true);
+    if (!st.ok) { if (st.error === 'nogame') { save(null); TOKEN = ''; } return later(3000); }
+    if (!st.joined) {                 // removed by the host, or game reset
+      save(null); TOKEN = ''; ME = '';
+      return later(10);
+    }
+    if (st.rev < rev && S) return later(delay());
+    if (S && (S.round !== st.round || S.status !== st.status)) { pick = 0; }
+    rev = st.rev; S = st; render('game'); later(delay());
+  }).catch(function () { done(); net(false); later(Math.min(6000, 1500 * failures)); });
+}
+var ROSTER = null, buzzed = '';
+function readyFor(r) { try { return localStorage.getItem('vg_up_' + GAME + '_' + r) === '1'; } catch (e) { return !!(window._vgUp || {})[GAME + r]; } }
+function setReady(r) { try { localStorage.setItem('vg_up_' + GAME + '_' + r, '1'); } catch (e) { (window._vgUp = window._vgUp || {})[GAME + r] = 1; } }
+
+/* ---------- screens ---------- */
+function center(emoji, big, med, small) {
+  return '<div class="center">' + (emoji ? '<div class="emoji">' + emoji + '</div>' : '') + (big ? '<div class="big">' + big + '</div>' : '') +
+    (med ? '<div class="med">' + med + '</div>' : '') + (small ? '<div class="small">' + small + '</div>' : '') + '</div>';
+}
+function padHtml(n, sel, disabled) {
+  var h = '<div class="pad">';
+  for (var i = 1; i <= n; i++) h += '<button class="k' + (i === sel ? ' sel' : '') + '" data-c="' + i + '"' + (disabled ? ' disabled' : '') + '>' + i + '</button>';
+  return h + '</div>';
+}
+function pipsHtml(on, n) { var h = '<div class="pips">'; for (var i = 1; i <= n; i++) h += '<div class="pip' + (i <= on ? ' on' : '') + '"></div>'; return h + '</div>'; }
+function render(mode) {
+  var m = $('main');
+  $('who').textContent = ME || '';
+  if (mode === 'nogame') { m.innerHTML = center('🕖', 'No game right now', 'This page will update by itself when the game opens.'); return; }
+  if (mode === 'late') { m.innerHTML = center('👍', 'This game already started', 'You can play next time.'); return; }
+  if (mode === 'pick') {
+    if (confirmName) {
+      m.innerHTML = center('🙋', 'Are you<br><span class="gold">' + esc(confirmName) + '</span>?', '') +
+        '<button class="btn" id="yes">Yes, that\'s me</button><button class="btn sec" id="back">Back</button>';
+      $('yes').onclick = function () { join(confirmName); }; $('back').onclick = function () { confirmName = ''; render('pick'); };
+      return;
+    }
+    var names = (ROSTER && ROSTER.names) || [];
+    m.innerHTML = '<div class="med" style="text-align:center">Tap <b class="gold">your name</b></div><div class="names">' +
+      names.map(function (n) { return '<button class="nb' + (n.taken ? ' taken' : '') + '" data-n="' + esc(n.name) + '">' + esc(n.name) + (n.guest ? ' <span class="small">(guest)</span>' : '') + (n.taken ? ' ✓' : '') + '</button>'; }).join('') + '</div>' +
+      (pending ? '<div class="small" style="text-align:center">' + pending + '</div>' : '');
+    Array.prototype.forEach.call(m.querySelectorAll('.nb'), function (b) {
+      b.onclick = function () { if (b.classList.contains('taken')) { pending = b.getAttribute('data-n') + ' is already in. Wrong one? Ask Troy to remove it.'; render('pick'); return; } confirmName = b.getAttribute('data-n'); pending = ''; render('pick'); };
+    });
+    return;
+  }
+  var s = S; if (!s) return;
+  if (s.status === 'lobby') {
+    m.innerHTML = center('✅', 'You\'re in, ' + esc(ME) + '!', 'Waiting for the game to start…', 'Keep this page open.') + '<button class="btn sec" id="notme">Not ' + esc(ME) + '? Tap here</button>';
+    $('notme').onclick = function () { call({ api: 'unjoin', g: GAME, p: TOKEN }).then(function () { save(null); TOKEN = ''; ME = ''; S = null; later(10); }); };
+    return;
+  }
+  if (s.status === 'final') { m.innerHTML = center('🏁', 'Game over', 'Your points today: <b class="gold">' + (s.total || 0) + '</b>', s.mode === 'Test' ? 'Practice game – scores don\'t count.' : 'Check the TV for the leaderboard.'); return; }
+  var head = '<div class="bar"><span>Round ' + (s.round + 1) + ' of ' + s.rounds + '</span><span>Clue <b>' + s.clue + '</b> of ' + s.clues + '</span></div>';
+  if (s.status === 'reveal' && s.result) {
+    var r = s.result;
+    m.innerHTML = head + center(r.correct ? '🎉' : '😅', r.correct ? 'Correct! +' + r.points : (Number(r.points) < 0 ? 'Not this time (' + String(r.points).replace('-', '\u2212') + ')' : 'Not this time'), 'The answer was <b class="gold">' + r.code + '</b>' + (r.callout ? '<br><b>' + esc(r.callout) + '</b>' : ''), 'Look at the TV for the scores.');
+    return;
+  }
+  if (s.status === 'tally') { m.innerHTML = head + center('📺', 'Votes are on the TV', 'The answer is coming up…'); return; }
+  if (s.role === 'reader') {
+    // "You're up!" (Troy, Nov 20 2026): before clue 1 of each round the reader is sent to the top of the circle.
+    // One tap shows the first clue; skipped if the round is already past clue 1 (e.g. the phone reloaded).
+    if (s.status === 'round' && s.clue === 1 && !readyFor(s.round)) {
+      if (buzzed !== GAME + ':' + s.round) { buzzed = GAME + ':' + s.round; try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (e) { } }
+      m.innerHTML = '<div class="bar"><span>Round ' + (s.round + 1) + ' of ' + s.rounds + '</span><span>📖 Reader</span></div>' +
+        '<div class="center up"><div class="emoji">🎤</div><div class="big">You\'re up!</div>' +
+        '<div class="med">Please move to the <b class="gold">top of the circle</b> and face the participants.</div></div>' +
+        '<button class="btn" id="ready">I\'m in place – show clue 1 ▶</button>';
+      $('ready').onclick = function () { setReady(s.round); render('game'); };
+      return;
+    }
+    if (s.status === 'round') {
+      var last = s.clue >= s.clues, done = last && (s.readDone || readDoneLocal(s.round));
+      var rh = '<div class="bar"><span>📖 <b style="font-size:20px">You read this round</b></span><span>' + s.answered + ' of ' + s.need + ' in</span></div>' +
+        pipsHtml(s.clue, s.clues) + '<div class="small">Clue ' + s.clue + ' of ' + s.clues + ' – read it out loud:</div>' +
+        '<div class="clue">' + esc(s.clueText || '') + '</div>' +
+        (done ? '<div class="med" style="text-align:center">✅ That was the last clue.<br><span class="small">Wait for everyone to answer, then you guess too.</span></div>'
+         : last ? '<button class="btn" id="next"' + (sending ? ' disabled' : '') + '>Done reading ✓</button><div class="small" style="text-align:center">Tap when everyone has heard the last clue.</div>'
+              : '<button class="btn" id="next"' + (sending ? ' disabled' : '') + '>Next clue ▶</button><div class="small" style="text-align:center">Tap when everyone has heard it.</div>');
+      if (m.getAttribute('data-rh') !== rh || !m.querySelector('.clue')) { m.innerHTML = rh; m.setAttribute('data-rh', rh); }   // unchanged poll: keep the button (no lost taps)
+      if (!done) $('next').onclick = nextClue;
+      return;
+    }
+    if (s.status === 'readerVote') {
+      if (s.myGuess) { m.innerHTML = head + center('🔒', 'Locked in: <span class="gold">' + s.myGuess + '</span>', esc(optName(s.myGuess))); return; }
+      var rtop = '<div class="med" style="text-align:center">Your turn: <b class="gold">which one</b> was it? (+15 if right)</div>';
+      if (s.options && s.options.length) return answerList(m, rtop + listHint(), 'guess');
+      return answerPad(m, rtop, 'guess');
+    }
+  }
+  if (s.role === 'guesser') {
+    if (s.myAnswer) { m.innerHTML = head + center('🔒', 'Locked in: <span class="gold">' + s.myAnswer.code + '</span>', (optName(s.myAnswer.code) ? '<b>' + esc(optName(s.myAnswer.code)) + '</b><br>' : '') + 'on clue ' + s.myAnswer.clue, s.status === 'round' ? 'Wait for the others…' : 'The reader is guessing…'); return; }
+    if (s.status === 'readerVote') { m.innerHTML = head + center('⏱️', 'Voting closed', 'The reader is guessing…'); return; }
+    if (s.options && s.options.length) return answerList(m, head + listHint(), 'answer');
+    return answerPad(m, head + '<div class="small" style="text-align:center">Pick the number from the TV. You get <b>one</b> answer.</div>', 'answer');   // v5 backend
+  }
+  m.innerHTML = center('👀', 'Watch the TV', '');
+}
+/* ---------- v6: option rows with cross-off ---------- */
+function optName(code) { var o = ((S && S.options) || []).filter(function (x) { return x.code === code; })[0]; return o ? o.callout : ''; }
+function listHint() { return '<div class="hint">Find it on the TV. Tap the <b>right one</b>, then <b>Lock in</b>. One answer only.<br>Tap <b>✕</b> (or swipe) to cross off ones that don\'t fit.</div>'; }
+function xKey() { return 'vg_x_' + GAME + '_' + (S ? S.round : ''); }
+var xMem = {};
+function crossed() { var k = xKey(); try { var v = JSON.parse(localStorage.getItem(k) || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return xMem[k] || []; } }
+function setCrossed(list) {
+  var k = xKey(); xMem[k] = list;
+  try {
+    localStorage.setItem(k, JSON.stringify(list));
+    for (var i = localStorage.length - 1; i >= 0; i--) { var kk = localStorage.key(i); if (kk && kk.indexOf('vg_x_') === 0 && kk !== k) localStorage.removeItem(kk); }   // other rounds: reset
+  } catch (e) { }
+}
+function toggleX(code) {
+  var x = crossed(), i = x.indexOf(code);
+  if (i >= 0) x.splice(i, 1); else { x.push(code); if (pick === code) pick = 0; }
+  setCrossed(x); listSig = ''; render('game');
+}
+function readDoneLocal(r) { try { return localStorage.getItem('vg_done_' + GAME + '_' + r) === '1'; } catch (e) { return !!(window._vgDone || {})[GAME + r]; } }
+function setReadDone(r) { try { localStorage.setItem('vg_done_' + GAME + '_' + r, '1'); } catch (e) { (window._vgDone = window._vgDone || {})[GAME + r] = 1; } }
+var listSig = '', dragging = false, dragPending = false;
+function answerList(m, top, kind) {
+  if (dragging) { dragPending = true; return; }          // never rebuild a row under the finger
+  var opts = S.options, x = crossed();
+  var sig = [kind, GAME, S.round, JSON.stringify(opts), pick, sending, x.join(',')].join('|');
+  if (listSig === sig && $('ol') && $('top')) { if ($('top').innerHTML !== top) $('top').innerHTML = top; return; }   // just a poll: keep scroll + rows
+  listSig = sig;
+  var row = function (o) {
+    var isX = x.indexOf(o.code) >= 0;
+    return '<div class="or' + (isX ? ' x' : '') + (o.code === pick ? ' sel' : '') + '" data-c="' + o.code + '">' +
+      '<button class="om" data-c="' + o.code + '"' + (sending ? ' disabled' : '') + '><b>' + o.code + '</b><span>' + esc(o.callout) + '</span></button>' +
+      '<button class="ox" data-c="' + o.code + '" aria-label="' + (isX ? 'Bring back ' : 'Cross off ') + o.code + '">' + (isX ? '↺' : '✕') + '</button></div>';
+  };
+  var live = opts.filter(function (o) { return x.indexOf(o.code) < 0; }), gone = opts.filter(function (o) { return x.indexOf(o.code) >= 0; });
+  var pn = pick ? optName(pick) : '';
+  m.innerHTML = '<div id="top">' + top + '</div><div class="ol" id="ol">' + live.map(row).join('') +
+    (gone.length ? '<div class="xsep">Crossed off (tap to bring back)</div>' + gone.map(row).join('') : '') + '</div>' +
+    '<div class="lockbar"><button class="btn" id="lock"' + (pick && !sending ? '' : ' disabled') + '>' +
+    (sending ? 'Sending…' : pick ? 'Lock in ' + pick + (pn ? '<small>' + esc(pn) + '</small>' : '') : 'Tap one above') + '</button></div>';
+  Array.prototype.forEach.call(m.querySelectorAll('.or'), wireRow);
+  $('lock').onclick = function () { send(kind); };
+}
+function wireRow(el) {
+  var code = Number(el.getAttribute('data-c')), x0 = 0, y0 = 0, dx = 0, on = false, swiped = false, pid = null;
+  var reset = function () { el.style.transform = ''; el.classList.remove('drag'); };
+  el.addEventListener('pointerdown', function (e) { if (sending) return; on = true; swiped = false; x0 = e.clientX; y0 = e.clientY; dx = 0; pid = e.pointerId; });
+  el.addEventListener('pointermove', function (e) {
+    if (!on || e.pointerId !== pid) return;
+    dx = e.clientX - x0; var dy = e.clientY - y0;
+    if (!dragging && Math.abs(dx) > 12 && Math.abs(dx) > 1.5 * Math.abs(dy)) { dragging = true; el.classList.add('drag'); try { el.setPointerCapture(pid); } catch (er) { } }
+    if (dragging) { el.style.transform = 'translateX(' + dx + 'px)'; e.preventDefault(); }
+  });
+  var end = function (e) {
+    if (!on) return; on = false;
+    var was = dragging; dragging = false; reset();
+    if (was && e.type !== 'pointercancel' && Math.abs(dx) > Math.min(90, el.offsetWidth * 0.25)) { swiped = true; toggleX(code); }
+    else if (was) swiped = true;                        // a short drag: no click either
+    if (dragPending) { dragPending = false; if (!swiped) render('game'); }
+  };
+  el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+  el.querySelector('.om').onclick = function () {
+    if (swiped) { swiped = false; return; }
+    if (el.classList.contains('x')) { toggleX(code); return; }   // tapping a crossed-off row brings it back
+    pick = code; listSig = ''; render('game');
+  };
+  el.querySelector('.ox').onclick = function (e) { e.stopPropagation(); if (swiped) { swiped = false; return; } toggleX(code); };
+}
+function answerPad(m, top, kind) {
+  m.innerHTML = top + padHtml(S.codes || 30, pick, sending) +
+    '<button class="btn" id="lock"' + (pick && !sending ? '' : ' disabled') + '>' + (pick ? 'Lock in ' + pick : 'Tap a number') + '</button>';
+  Array.prototype.forEach.call(m.querySelectorAll('.k'), function (b) { b.onclick = function () { pick = Number(b.getAttribute('data-c')); answerPad(m, top, kind); }; });
+  $('lock').onclick = function () { send(kind); };
+}
+function send(kind) {
+  if (!pick || sending) return;
+  sending = true; render('game');
+  var p = { api: kind, g: GAME, p: TOKEN, r: S.round, c: pick };
+  var go = function (tries) {
+    call(p, 9000).then(function (x) {
+      sending = false;
+      if (x.ok) { if (kind === 'answer') S.myAnswer = { code: x.code, clue: x.clue }; else S.myGuess = x.code; }
+      else if (x.error === 'closed') { /* voting closed meanwhile */ }
+      render('game'); later(200);
+    }).catch(function () { if (tries < 2) go(tries + 1); else { sending = false; render('game'); later(200); } });
+  };
+  go(0);
+}
+function nextClue() {
+  if (sending || Date.now() - lastNextAt < 1200) return;
+  sending = true; lastNextAt = Date.now(); render('game');
+  call({ api: 'next', g: GAME, p: TOKEN, r: S.round, clue: S.clue }).then(function (x) {
+    sending = false;
+    if (x.ok) { if (x.last && x.clue === S.clue) { setReadDone(S.round); S.readDone = true; } S.clue = x.clue; S.clueText = x.clueText; }
+    render('game'); later(1200);
+  }).catch(function () { sending = false; render('game'); later(300); });
+}
+function join(name) {
+  pending = 'Joining…'; confirmName = ''; render('pick');
+  call({ api: 'join', g: GAME, name: name, d: DEV }, 10000).then(function (j) {
+    if (j.ok) { TOKEN = j.token; ME = j.name; save({ token: TOKEN, name: ME }); pending = ''; later(10); return; }
+    pending = j.error === 'taken' ? name + ' is already in. Wrong one? Ask Troy to remove it.' : j.error === 'started' ? '' : 'Could not join: ' + j.error;
+    if (j.error === 'started') render('late'); else render('pick');
+  }).catch(function () { pending = 'Network trouble – tap your name again.'; render('pick'); });
+}
+document.addEventListener('visibilitychange', function () { if (!document.hidden) later(10); });
+tick();
+</script>
+</body>
+</html>
